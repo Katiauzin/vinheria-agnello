@@ -1,0 +1,27 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        echo 'Checkout (simulado)'
+        // git credentials could be here
+      }
+    }
+    stage('Build') {
+      steps {
+        echo 'Build: Deploy da Vinheria'
+      }
+    }
+    stage('Publish') {
+      steps {
+        script {
+          // Simula deploy copiando arquivos para pasta de publicação compartilhada
+          sh '''
+            mkdir -p /var/jenkins_work/publish
+            echo "Deploy da Vinheria - $(date)" > /var/jenkins_work/publish/deploy.txt
+          '''
+        }
+      }
+    }
+  }
+}

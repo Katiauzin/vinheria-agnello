@@ -1,0 +1,70 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: vin_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - auth
+      - inventory_service
+      - order_service
+    networks:
+      - vinheria_net
+
+  auth:
+    build: ./auth
+    container_name: vin_auth
+    environment:
+      JWT_SECRET: minha_chave_secreta_vinheria
+    networks:
+      - vinheria_net
+    ports:
+      - "8080:8080"
+
+  inventory_service:
+    build: ./inventory-service
+    container_name: vin_inventory_service
+    hostname: inventory-service
+    environment:
+      JWT_SECRET: minha_chave_secreta_vinheria
+    expose:
+      - "5001"
+    networks:
+      - vinheria_net
+
+  order_service:
+    build: ./order-service
+    container_name: vin_order_service
+    hostname: order-service
+    environment:
+      JWT_SECRET: minha_chave_secreta_vinheria
+    ports:
+      - "5000"
+    networks:
+      - vinheria_net
+    depends_on:
+      - inventory_service
+  
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: vin_jenkins
+    user: root
+    ports:
+      - "8085:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./jenkins:/var/jenkins_work
+    networks:
+      - vinheria_net
+
+networks:
+  vinheria_net:
+    driver: bridge
+
+volumes:
+  jenkins_home:
